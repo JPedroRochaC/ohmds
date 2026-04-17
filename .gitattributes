@@ -1,0 +1,20 @@
+
+*.html linguist-vendored
+*.css linguist-vendored
+*.js linguist-vendored
+
+*.json linguist-vendored
+*.lock linguist-vendored
+*.yml linguist-vendored
+*.yaml linguist-vendored
+
+
+*.png linguist-vendored
+*.jpg linguist-vendored
+*.jpeg linguist-vendored
+*.gif linguist-vendored
+*.svg linguist-vendored
+
+docs/* linguist-vendored
+
+*.py linguist-detectable=true
