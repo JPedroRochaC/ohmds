@@ -8,7 +8,6 @@
 *.yml linguist-vendored
 *.yaml linguist-vendored
 
-
 *.png linguist-vendored
 *.jpg linguist-vendored
 *.jpeg linguist-vendored
