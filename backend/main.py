@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import pymysql
 from pymysql import Error
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 
 app = Flask(__name__)
 CORS(app)
@@ -53,7 +53,8 @@ def listar():
 
         for r in rows:
             if isinstance(r["criado_em"], datetime):
-                r["criado_em"] = r["criado_em"].strftime("%d/%m/%Y %H:%M")
+               fuso_brasil = timezone(timedelta(hours=-3))
+               r["criado_em"] = r["criado_em"].replace(tzinfo=timezone.utc).astimezone(fuso_brasil).strftime("%d/%m/%Y %H:%M")
 
         return jsonify(rows), 200
     except Error as e:
