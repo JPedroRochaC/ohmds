@@ -1,397 +1,372 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Denúncias Urbanas</title>
-    <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Denúncias Urbanas</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f4f3ef;--surface:#ffffff;--surface2:#f1efe8;
+  --border:rgba(0,0,0,0.10);--border2:rgba(0,0,0,0.20);
+  --text:#1a1a19;--text2:#5f5e5a;--text3:#888780;
+  --accent:#1D9E75;--accent-l:#E1F5EE;--accent-d:#085041;
+  --warn:#BA7517;--warn-l:#FAEEDA;
+  --danger:#A32D2D;--danger-l:#FCEBEB;
+  --info:#185FA5;--info-l:#E6F1FB;
+  --radius:10px;--radius-lg:14px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:2rem 1rem 4rem}
+.container{max-width:900px;margin:0 auto}
 
-        :root {
-            --bg:        #f4f3ef;
-            --surface:   #ffffff;
-            --surface2:  #f1efe8;
-            --border:    rgba(0,0,0,0.10);
-            --border2:   rgba(0,0,0,0.20);
-            --text:      #1a1a19;
-            --text2:     #5f5e5a;
-            --text3:     #888780;
-            --accent:    #1D9E75;
-            --accent-l:  #E1F5EE;
-            --accent-d:  #085041;
-            --warn:      #BA7517;
-            --warn-l:    #FAEEDA;
-            --danger:    #A32D2D;
-            --danger-l:  #FCEBEB;
-            --info:      #185FA5;
-            --info-l:    #E6F1FB;
-            --radius:    10px;
-            --radius-lg: 14px;
-        }
+/* Modal de login */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:center;justify-content:center;z-index:200}
+.modal{background:var(--surface);border-radius:var(--radius-lg);padding:2rem;width:340px;max-width:90vw;border:0.5px solid var(--border)}
+.modal h2{font-size:18px;font-weight:600;margin-bottom:6px}
+.modal p{font-size:13px;color:var(--text2);margin-bottom:1.25rem;line-height:1.5}
+.modal input{width:100%;padding:9px 11px;font-size:14px;font-family:inherit;background:var(--surface2);border:0.5px solid var(--border2);border-radius:var(--radius);color:var(--text);margin-bottom:12px}
+.modal input:focus{outline:none;border-color:var(--accent)}
+.modal-btn{width:100%;padding:10px;border:none;border-radius:var(--radius);background:var(--accent);color:white;font-size:14px;font-weight:600;cursor:pointer}
+.modal-btn:hover{opacity:0.88}
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-            padding: 2rem 1rem 4rem;
-        }
+/* Header */
+.header{display:flex;align-items:center;gap:14px;margin-bottom:2rem}
+.header-icon{width:46px;height:46px;border-radius:12px;background:var(--accent);display:flex;align-items:center;justify-content:center}
+.header-icon svg{width:24px;height:24px;stroke:white;fill:none;stroke-width:1.8}
+.header h1{font-size:22px;font-weight:600}
+.header p{font-size:14px;color:var(--text2);margin-top:2px}
 
-        .container { max-width: 900px; margin: 0 auto; }
+/* User badge */
+.user-badge{display:flex;align-items:center;gap:8px;margin-left:auto;background:var(--accent-l);border-radius:999px;padding:5px 12px 5px 6px}
+.user-avatar{width:28px;height:28px;border-radius:50%;background:var(--accent);color:white;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600}
+.user-name{font-size:13px;font-weight:500;color:var(--accent-d)}
+.btn-logout{background:none;border:none;cursor:pointer;font-size:12px;color:var(--text3);padding:0;margin-left:4px}
+.btn-logout:hover{color:var(--danger)}
 
-        .header { display: flex; align-items: center; gap: 14px; margin-bottom: 2rem; }
-        .header-icon {
-            width: 46px; height: 46px; border-radius: 12px;
-            background: var(--accent); display: flex; align-items: center; justify-content: center;
-        }
-        .header-icon svg { width: 24px; height: 24px; stroke: white; fill: none; stroke-width: 1.8; }
-        .header h1 { font-size: 22px; font-weight: 600; }
-        .header p  { font-size: 14px; color: var(--text2); margin-top: 2px; }
+/* Stats */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.75rem}
+.stat{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:0.9rem 1rem}
+.stat-label{font-size:12px;color:var(--text2);margin-bottom:4px}
+.stat-value{font-size:26px;font-weight:600}
 
-        .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 1.75rem; }
-        .stat { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 0.9rem 1rem; }
-        .stat-label { font-size: 12px; color: var(--text2); margin-bottom: 4px; }
-        .stat-value { font-size: 26px; font-weight: 600; }
+/* Grid */
+.grid{display:grid;grid-template-columns:1fr 1.5fr;gap:1.25rem;align-items:start}
+.card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem}
+.card-title{font-size:14px;font-weight:600;margin-bottom:1rem;padding-bottom:0.875rem;border-bottom:0.5px solid var(--border)}
 
-        .grid { display: grid; grid-template-columns: 1fr 1.5fr; gap: 1.25rem; align-items: start; }
+/* Form */
+.form-group{margin-bottom:0.875rem}
+label{display:block;font-size:12px;color:var(--text2);margin-bottom:5px}
+input,select,textarea{width:100%;padding:9px 11px;font-size:14px;font-family:inherit;background:var(--surface2);border:0.5px solid var(--border2);border-radius:var(--radius);color:var(--text);transition:border-color 0.15s}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent)}
+textarea{resize:vertical;min-height:72px}
+select{cursor:pointer}
 
-        .card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; }
-        .card-title { font-size: 14px; font-weight: 600; margin-bottom: 1rem; padding-bottom: 0.875rem; border-bottom: 0.5px solid var(--border); }
+.btn-primary{width:100%;padding:10px;border:none;border-radius:var(--radius);background:var(--accent);color:white;font-size:14px;font-weight:600;cursor:pointer;margin-top:0.25rem;transition:opacity 0.15s,transform 0.1s}
+.btn-primary:hover{opacity:0.88}
+.btn-primary:active{transform:scale(0.98)}
+.btn-primary:disabled{opacity:0.5;cursor:not-allowed}
 
-        .form-group { margin-bottom: 0.875rem; }
-        label { display: block; font-size: 12px; color: var(--text2); margin-bottom: 5px; }
-        input, select, textarea {
-            width: 100%; padding: 9px 11px; font-size: 14px; font-family: inherit;
-            background: var(--surface2); border: 0.5px solid var(--border2);
-            border-radius: var(--radius); color: var(--text);
-            transition: border-color 0.15s;
-        }
-        input:focus, select:focus, textarea:focus {
-            outline: none; border-color: var(--accent);
-        }
-        textarea { resize: vertical; min-height: 72px; }
-        select { cursor: pointer; }
+/* Toolbar */
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:0.875rem}
+.search{flex:1;position:relative;min-width:160px}
+.search input{padding-left:32px}
+.search-ic{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:15px;height:15px;stroke:var(--text3);fill:none;pointer-events:none}
 
-        .btn-primary {
-            width: 100%; padding: 10px; border: none; border-radius: var(--radius);
-            background: var(--accent); color: white; font-size: 14px; font-weight: 600;
-            cursor: pointer; margin-top: 0.25rem; transition: opacity 0.15s, transform 0.1s;
-        }
-        .btn-primary:hover { opacity: 0.88; }
-        .btn-primary:active { transform: scale(0.98); }
-        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+.filter-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1rem}
+.filter-btn{font-size:12px;padding:4px 11px;border-radius:999px;border:0.5px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;transition:all 0.12s}
+.filter-btn.active{background:var(--accent);color:white;border-color:var(--accent)}
 
-        .toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 0.875rem; }
-        .search { flex: 1; position: relative; min-width: 160px; }
-        .search input { padding-left: 32px; }
-        .search-ic { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; stroke: var(--text3); fill: none; pointer-events: none; }
+.list{display:flex;flex-direction:column;gap:8px;max-height:500px;overflow-y:auto}
+.list::-webkit-scrollbar{width:4px}
+.list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
 
-        .filter-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1rem; }
-        .filter-btn { font-size: 12px; padding: 4px 11px; border-radius: 999px; border: 0.5px solid var(--border2); background: transparent; color: var(--text2); cursor: pointer; transition: all 0.12s; }
-        .filter-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+/* Item */
+.item{background:var(--surface2);border-radius:var(--radius);padding:0.875rem 1rem;display:flex;gap:10px;align-items:flex-start}
+.item-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.item-icon svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.8}
+.item-body{flex:1;min-width:0}
+.item-top{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:3px}
+.item-addr{font-size:13px;font-weight:600}
+.badge{font-size:11px;padding:2px 8px;border-radius:999px;font-weight:500}
+.b-buraco{background:var(--danger-l);color:var(--danger)}
+.b-lixo{background:var(--warn-l);color:var(--warn)}
+.b-iluminacao{background:var(--info-l);color:var(--info)}
+.b-outro{background:var(--surface2);color:var(--text2);border:0.5px solid var(--border2)}
+.s-pendente{background:var(--warn-l);color:var(--warn)}
+.s-andamento{background:var(--info-l);color:var(--info)}
+.s-resolvido{background:var(--accent-l);color:var(--accent-d)}
+.item-desc{font-size:12px;color:var(--text2);line-height:1.5;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item-meta{font-size:11px;color:var(--text3);display:flex;align-items:center;gap:6px}
+.item-owner{font-size:11px;background:var(--accent-l);color:var(--accent-d);padding:1px 7px;border-radius:999px;font-weight:500}
+.mine-tag{font-size:10px;background:var(--accent);color:white;padding:1px 6px;border-radius:999px;font-weight:600}
 
-        .list { display: flex; flex-direction: column; gap: 8px; max-height: 500px; overflow-y: auto; }
-        .list::-webkit-scrollbar { width: 4px; }
-        .list::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+.btn-del{background:none;border:none;cursor:pointer;color:var(--text3);padding:4px;border-radius:6px;display:flex;transition:all 0.12s;flex-shrink:0}
+.btn-del:hover{color:var(--danger);background:var(--danger-l)}
+.btn-del svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8}
 
-        .item { background: var(--surface2); border-radius: var(--radius); padding: 0.875rem 1rem; display: flex; gap: 10px; align-items: flex-start; }
-        .item-icon { width: 36px; height: 36px; border-radius: 9px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-        .item-icon svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 1.8; }
-        .item-body { flex: 1; min-width: 0; }
-        .item-top { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 3px; }
-        .item-addr { font-size: 13px; font-weight: 600; }
-        .badge { font-size: 11px; padding: 2px 8px; border-radius: 999px; font-weight: 500; }
-        .b-buraco    { background: var(--danger-l); color: var(--danger); }
-        .b-lixo      { background: var(--warn-l);   color: var(--warn);   }
-        .b-iluminacao{ background: var(--info-l);   color: var(--info);   }
-        .b-outro     { background: var(--surface2); color: var(--text2);  border: 0.5px solid var(--border2); }
-        .s-pendente  { background: var(--warn-l);   color: var(--warn);   }
-        .s-andamento { background: var(--info-l);   color: var(--info);   }
-        .s-resolvido { background: var(--accent-l); color: var(--accent-d); }
-        .item-desc { font-size: 12px; color: var(--text2); line-height: 1.5; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .item-meta { font-size: 11px; color: var(--text3); }
-        .btn-del { background: none; border: none; cursor: pointer; color: var(--text3); padding: 4px; border-radius: 6px; display: flex; transition: all 0.12s; flex-shrink: 0; }
-        .btn-del:hover { color: var(--danger); background: var(--danger-l); }
-        .btn-del svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+.empty{text-align:center;padding:2.5rem 1rem;color:var(--text3);font-size:14px}
 
-        .empty { text-align: center; padding: 2.5rem 1rem; color: var(--text3); font-size: 14px; }
+.toast{position:fixed;bottom:1.5rem;right:1.5rem;color:white;padding:10px 16px;border-radius:var(--radius);font-size:13px;opacity:0;pointer-events:none;transition:opacity 0.3s;z-index:999}
+.toast.show{opacity:1}
 
-        .toast {
-            position: fixed; bottom: 1.5rem; right: 1.5rem;
-            color: white; padding: 10px 16px; border-radius: var(--radius);
-            font-size: 13px; opacity: 0; pointer-events: none;
-            transition: opacity 0.3s; z-index: 999;
-        }
-        .toast.show { opacity: 1; }
+.api-status{font-size:11px;padding:3px 9px;border-radius:999px;display:inline-flex;align-items:center;gap:5px}
+.api-dot{width:7px;height:7px;border-radius:50%}
+.api-ok{background:var(--accent-l);color:var(--accent-d)}
+.api-ok .api-dot{background:var(--accent)}
+.api-fail{background:var(--warn-l);color:var(--warn)}
+.api-fail .api-dot{background:var(--warn)}
 
-        .api-status { font-size: 11px; padding: 3px 9px; border-radius: 999px; display: inline-flex; align-items: center; gap: 5px; margin-left: auto; }
-        .api-dot { width: 7px; height: 7px; border-radius: 50%; }
-        .api-ok   { background: var(--accent-l); color: var(--accent-d); }
-        .api-ok .api-dot   { background: var(--accent); }
-        .api-fail { background: var(--warn-l); color: var(--warn); }
-        .api-fail .api-dot { background: var(--warn); }
-
-        @media (max-width: 620px) {
-            .grid  { grid-template-columns: 1fr; }
-            .stats { grid-template-columns: repeat(2, 1fr); }
-        }
-    </style>
+@media(max-width:620px){.grid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}}
+</style>
 </head>
 <body>
+
+<div class="modal-overlay" id="modal-login">
+  <div class="modal">
+    <h2>Bem-vindo!</h2>
+    <p>Digite seu nome para identificar suas denúncias. Você poderá excluir apenas as que você criou.</p>
+    <input id="input-nome" type="text" placeholder="Seu nome..." maxlength="50"/>
+    <button class="modal-btn" onclick="entrar()">Entrar</button>
+  </div>
+</div>
+
 <div class="container">
+  <div class="header">
+    <div class="header-icon">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    </div>
+    <div style="flex:1">
+      <h1>Denúncias Urbanas</h1>
+      <p>Registre e acompanhe problemas na sua cidade</p>
+    </div>
+    <div class="api-status api-fail" id="api-status"><span class="api-dot"></span> API offline</div>
+    <div class="user-badge" id="user-badge" style="display:none">
+      <div class="user-avatar" id="user-avatar"></div>
+      <span class="user-name" id="user-name-label"></span>
+      <button class="btn-logout" onclick="sair()" title="Trocar nome">✕</button>
+    </div>
+  </div>
 
-    <div class="header">
-        <div class="header-icon">
-            <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-        </div>
-        <div style="flex:1">
-            <h1>Denúncias Urbanas</h1>
-            <p>Registre e acompanhe problemas na sua cidade</p>
-        </div>
-        <div class="api-status api-fail" id="api-status">
-            <span class="api-dot"></span> API offline
-        </div>
+  <div class="stats">
+    <div class="stat"><div class="stat-label">Total</div><div class="stat-value" id="st-total" style="color:var(--text)">—</div></div>
+    <div class="stat"><div class="stat-label">Pendente</div><div class="stat-value" id="st-pendente" style="color:var(--warn)">—</div></div>
+    <div class="stat"><div class="stat-label">Em andamento</div><div class="stat-value" id="st-andamento" style="color:var(--info)">—</div></div>
+    <div class="stat"><div class="stat-label">Resolvido</div><div class="stat-value" id="st-resolvido" style="color:var(--accent)">—</div></div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <div class="card-title">Nova denúncia</div>
+      <div class="form-group">
+        <label for="tipo">Tipo de problema</label>
+        <select id="tipo">
+          <option value="buraco">Buraco na via</option>
+          <option value="lixo">Descarte irregular de lixo</option>
+          <option value="iluminacao">Iluminação pública</option>
+          <option value="outro">Outro</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="endereco">Endereço</label>
+        <input id="endereco" type="text" placeholder="Ex: Rua das Flores, 123"/>
+      </div>
+      <div class="form-group">
+        <label for="descricao">Descrição</label>
+        <textarea id="descricao" placeholder="Descreva o problema..."></textarea>
+      </div>
+      <div class="form-group">
+        <label for="status">Status inicial</label>
+        <select id="status">
+          <option value="pendente">Pendente</option>
+          <option value="andamento">Em andamento</option>
+          <option value="resolvido">Resolvido</option>
+        </select>
+      </div>
+      <button class="btn-primary" id="btn-registrar" onclick="criarDenuncia()">Registrar denúncia</button>
     </div>
 
-    <div class="stats">
-        <div class="stat">
-            <div class="stat-label">Total</div>
-            <div class="stat-value" id="st-total" style="color:var(--text)">—</div>
+    <div class="card">
+      <div class="card-title">Denúncias registradas</div>
+      <div class="toolbar">
+        <div class="search">
+          <svg class="search-ic" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input id="busca" type="text" placeholder="Buscar..." oninput="renderLista()"/>
         </div>
-        <div class="stat">
-            <div class="stat-label">Pendente</div>
-            <div class="stat-value" id="st-pendente" style="color:var(--warn)">—</div>
-        </div>
-        <div class="stat">
-            <div class="stat-label">Em andamento</div>
-            <div class="stat-value" id="st-andamento" style="color:var(--info)">—</div>
-        </div>
-        <div class="stat">
-            <div class="stat-label">Resolvido</div>
-            <div class="stat-value" id="st-resolvido" style="color:var(--accent)">—</div>
-        </div>
+      </div>
+      <div class="filter-row">
+        <button class="filter-btn active" data-f="todos" onclick="setFiltro(this)">Todos</button>
+        <button class="filter-btn" data-f="buraco" onclick="setFiltro(this)">Buracos</button>
+        <button class="filter-btn" data-f="lixo" onclick="setFiltro(this)">Lixo</button>
+        <button class="filter-btn" data-f="iluminacao" onclick="setFiltro(this)">Iluminação</button>
+        <button class="filter-btn" data-f="outro" onclick="setFiltro(this)">Outros</button>
+      </div>
+      <div class="list" id="lista"></div>
     </div>
-
-    <div class="grid">
-        <!-- Formulário -->
-        <div class="card">
-            <div class="card-title">Nova denúncia</div>
-
-            <div class="form-group">
-                <label for="tipo">Tipo de problema</label>
-                <select id="tipo">
-                    <option value="buraco">Buraco na via</option>
-                    <option value="lixo">Descarte irregular de lixo</option>
-                    <option value="iluminacao">Iluminação pública</option>
-                    <option value="outro">Outro</option>
-                </select>
-            </div>
-
-            <div class="form-group">
-                <label for="endereco">Endereço</label>
-                <input id="endereco" type="text" placeholder="Ex: Rua das Flores, 123" />
-            </div>
-
-            <div class="form-group">
-                <label for="descricao">Descrição</label>
-                <textarea id="descricao" placeholder="Descreva o problema..."></textarea>
-            </div>
-
-            <div class="form-group">
-                <label for="status">Status inicial</label>
-                <select id="status">
-                    <option value="pendente">Pendente</option>
-                    <option value="andamento">Em andamento</option>
-                    <option value="resolvido">Resolvido</option>
-                </select>
-            </div>
-
-            <button class="btn-primary" id="btn-registrar" onclick="criarDenuncia()">Registrar denúncia</button>
-        </div>
-
-        <!-- Lista -->
-        <div class="card">
-            <div class="card-title">Denúncias registradas</div>
-
-            <div class="toolbar">
-                <div class="search">
-                    <svg class="search-ic" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                    <input id="busca" type="text" placeholder="Buscar..." oninput="renderLista()" />
-                </div>
-            </div>
-
-            <div class="filter-row">
-                <button class="filter-btn active" data-f="todos"      onclick="setFiltro(this)">Todos</button>
-                <button class="filter-btn"        data-f="buraco"     onclick="setFiltro(this)">Buracos</button>
-                <button class="filter-btn"        data-f="lixo"       onclick="setFiltro(this)">Lixo</button>
-                <button class="filter-btn"        data-f="iluminacao" onclick="setFiltro(this)">Iluminação</button>
-                <button class="filter-btn"        data-f="outro"      onclick="setFiltro(this)">Outros</button>
-            </div>
-
-            <div class="list" id="lista"></div>
-        </div>
-    </div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-    const API = "https://ohmds.onrender.com";
+const API="https://ohmds.onrender.com";
+const ICONS={
+  buraco:'<svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+  lixo:'<svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>',
+  iluminacao:'<svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="3"/><path d="M12 6a6 6 0 010 12"/><line x1="12" y1="18" x2="12" y2="21"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>',
+  outro:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+};
+const TIPO_LABEL={buraco:"Buraco",lixo:"Lixo",iluminacao:"Iluminação",outro:"Outro"};
+const STATUS_LABEL={pendente:"Pendente",andamento:"Em andamento",resolvido:"Resolvido"};
+const ICON_BG={buraco:"#FCEBEB",lixo:"#FAEEDA",iluminacao:"#E6F1FB",outro:"#F1EFE8"};
+const ICON_COLOR={buraco:"#A32D2D",lixo:"#BA7517",iluminacao:"#185FA5",outro:"#888780"};
 
-    const ICONS = {
-        buraco:     '<svg viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
-        lixo:       '<svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>',
-        iluminacao: '<svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="3"/><path d="M12 6a6 6 0 010 12"/><line x1="12" y1="18" x2="12" y2="21"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>',
-        outro:      '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
-    };
+let denuncias=[];
+let filtroAtivo="todos";
+let usuarioAtual=localStorage.getItem("denuncia_usuario")||"";
 
-    const TIPO_LABEL   = { buraco: "Buraco", lixo: "Lixo", iluminacao: "Iluminação", outro: "Outro" };
-    const STATUS_LABEL = { pendente: "Pendente", andamento: "Em andamento", resolvido: "Resolvido" };
-    const ICON_BG      = { buraco: "#FCEBEB", lixo: "#FAEEDA", iluminacao: "#E6F1FB", outro: "#F1EFE8" };
-    const ICON_COLOR   = { buraco: "#A32D2D", lixo: "#BA7517", iluminacao: "#185FA5", outro: "#888780" };
+function entrar(){
+  const nome=document.getElementById("input-nome").value.trim();
+  if(!nome){toast("Digite seu nome!","#A32D2D");return;}
+  usuarioAtual=nome;
+  localStorage.setItem("denuncia_usuario",nome);
+  aplicarUsuario();
+  document.getElementById("modal-login").style.display="none";
+  carregarDenuncias();
+}
 
-    let denuncias  = [];
-    let filtroAtivo = "todos";
+function sair(){
+  if(!confirm("Trocar de usuário?"))return;
+  localStorage.removeItem("denuncia_usuario");
+  usuarioAtual="";
+  document.getElementById("modal-login").style.display="flex";
+  document.getElementById("user-badge").style.display="none";
+}
 
-    async function apiFetch(path, opts = {}) {
-        const r = await fetch(API + path, {
-            headers: { "Content-Type": "application/json" },
-            ...opts,
-        });
-        if (!r.ok) {
-            const err = await r.json().catch(() => ({}));
-            throw new Error(err.erro || `Erro ${r.status}`);
-        }
-        return r.status === 204 ? null : r.json();
-    }
+function aplicarUsuario(){
+  document.getElementById("user-badge").style.display="flex";
+  document.getElementById("user-name-label").textContent=usuarioAtual;
+  document.getElementById("user-avatar").textContent=usuarioAtual.charAt(0).toUpperCase();
+}
 
-    async function carregarDenuncias() {
-        try {
-            denuncias = await apiFetch("/denuncias");
-            setApiStatus(true);
-        } catch {
-            setApiStatus(false);
-            denuncias = [];
-        }
-        renderLista();
-        carregarStats();
-    }
-
-    async function carregarStats() {
-        try {
-            const s = await apiFetch("/stats");
-            document.getElementById("st-total").textContent    = s.total;
-            document.getElementById("st-pendente").textContent = s.pendente;
-            document.getElementById("st-andamento").textContent= s.andamento;
-            document.getElementById("st-resolvido").textContent= s.resolvido;
-        } catch { /* silencioso */ }
-    }
-
-    async function criarDenuncia() {
-        const tipo      = document.getElementById("tipo").value;
-        const endereco  = document.getElementById("endereco").value.trim();
-        const descricao = document.getElementById("descricao").value.trim();
-        const status    = document.getElementById("status").value;
-
-        if (!endereco || !descricao) {
-            toast("Preencha o endereço e a descrição.", "#A32D2D");
-            return;
-        }
-
-        const btn = document.getElementById("btn-registrar");
-        btn.disabled = true;
-        btn.textContent = "Registrando...";
-
-        try {
-            await apiFetch("/denuncias", {
-                method: "POST",
-                body: JSON.stringify({ tipo, endereco, descricao, status }),
-            });
-            document.getElementById("endereco").value  = "";
-            document.getElementById("descricao").value = "";
-            toast("Denúncia registrada com sucesso!", "#085041");
-            carregarDenuncias();
-        } catch (e) {
-            toast("Erro: " + e.message, "#A32D2D");
-        } finally {
-            btn.disabled = false;
-            btn.textContent = "Registrar denúncia";
-        }
-    }
-
-    async function excluir(id) {
-        if (!confirm("Excluir esta denúncia?")) return;
-        try {
-            await apiFetch(`/denuncias/${id}`, { method: "DELETE" });
-            toast("Denúncia excluída.", "#5F5E5A");
-            carregarDenuncias();
-        } catch (e) {
-            toast("Erro ao excluir: " + e.message, "#A32D2D");
-        }
-    }
-
-    function setFiltro(btn) {
-        document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
-        btn.classList.add("active");
-        filtroAtivo = btn.dataset.f;
-        renderLista();
-    }
-
-    function renderLista() {
-        const busca = document.getElementById("busca").value.toLowerCase();
-        const lista = document.getElementById("lista");
-
-        const filtradas = denuncias.filter(d => {
-            const okTipo  = filtroAtivo === "todos" || d.tipo === filtroAtivo;
-            const okBusca = !busca || d.endereco.toLowerCase().includes(busca) || d.descricao.toLowerCase().includes(busca);
-            return okTipo && okBusca;
-        });
-
-        if (!filtradas.length) {
-            lista.innerHTML = '<div class="empty">Nenhuma denúncia encontrada.</div>';
-            return;
-        }
-
-        lista.innerHTML = filtradas.map(d => `
-      <div class="item">
-        <div class="item-icon" style="background:${ICON_BG[d.tipo]};color:${ICON_COLOR[d.tipo]}">${ICONS[d.tipo]}</div>
-        <div class="item-body">
-          <div class="item-top">
-            <span class="item-addr">${d.endereco}</span>
-            <span class="badge b-${d.tipo}">${TIPO_LABEL[d.tipo]}</span>
-            <span class="badge s-${d.status}">${STATUS_LABEL[d.status]}</span>
-          </div>
-          <div class="item-desc">${d.descricao}</div>
-          <div class="item-meta">${d.criado_em}</div>
-        </div>
-        <button class="btn-del" onclick="excluir(${d.id})" title="Excluir">
-          <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
-        </button>
-      </div>
-    `).join("");
-    }
-
-    function setApiStatus(ok) {
-        const el = document.getElementById("api-status");
-        if (ok) {
-            el.className = "api-status api-ok";
-            el.innerHTML = '<span class="api-dot"></span> API conectada';
-        } else {
-            el.className = "api-status api-fail";
-            el.innerHTML = '<span class="api-dot"></span> API offline';
-        }
-    }
-
-    function toast(msg, bg = "#085041") {
-        const t = document.getElementById("toast");
-        t.textContent = msg;
-        t.style.background = bg;
-        t.classList.add("show");
-        setTimeout(() => t.classList.remove("show"), 2800);
-    }
-
+function iniciar(){
+  if(usuarioAtual){
+    aplicarUsuario();
+    document.getElementById("modal-login").style.display="none";
     carregarDenuncias();
-    setInterval(carregarDenuncias, 30000);
+  }else{
+    document.getElementById("modal-login").style.display="flex";
+    setTimeout(()=>document.getElementById("input-nome").focus(),100);
+  }
+}
+
+document.getElementById("input-nome").addEventListener("keydown",e=>{if(e.key==="Enter")entrar();});
+
+async function apiFetch(path,opts={}){
+  const r=await fetch(API+path,{headers:{"Content-Type":"application/json"},...opts});
+  if(!r.ok){const err=await r.json().catch(()=>({}));throw new Error(err.erro||`Erro ${r.status}`);}
+  return r.status===204?null:r.json();
+}
+
+async function carregarDenuncias(){
+  try{denuncias=await apiFetch("/denuncias");setApiStatus(true);}
+  catch{setApiStatus(false);denuncias=[];}
+  renderLista();
+  carregarStats();
+}
+
+async function carregarStats(){
+  try{
+    const s=await apiFetch("/stats");
+    document.getElementById("st-total").textContent=s.total;
+    document.getElementById("st-pendente").textContent=s.pendente;
+    document.getElementById("st-andamento").textContent=s.andamento;
+    document.getElementById("st-resolvido").textContent=s.resolvido;
+  }catch{}
+}
+
+async function criarDenuncia(){
+  const tipo=document.getElementById("tipo").value;
+  const endereco=document.getElementById("endereco").value.trim();
+  const descricao=document.getElementById("descricao").value.trim();
+  const status=document.getElementById("status").value;
+  if(!endereco||!descricao){toast("Preencha o endereço e a descrição.","#A32D2D");return;}
+  const btn=document.getElementById("btn-registrar");
+  btn.disabled=true;btn.textContent="Registrando...";
+  try{
+    await apiFetch("/denuncias",{method:"POST",body:JSON.stringify({tipo,endereco,descricao,status,criado_por:usuarioAtual})});
+    document.getElementById("endereco").value="";
+    document.getElementById("descricao").value="";
+    toast("Denúncia registrada com sucesso!","#085041");
+    carregarDenuncias();
+  }catch(e){toast("Erro: "+e.message,"#A32D2D");}
+  finally{btn.disabled=false;btn.textContent="Registrar denúncia";}
+}
+
+async function excluir(id){
+  if(!confirm("Excluir esta denúncia?"))return;
+  try{
+    await apiFetch(`/denuncias/${id}`,{method:"DELETE"});
+    toast("Denúncia excluída.","#5F5E5A");
+    carregarDenuncias();
+  }catch(e){toast("Erro ao excluir: "+e.message,"#A32D2D");}
+}
+
+function setFiltro(btn){
+  document.querySelectorAll(".filter-btn").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  filtroAtivo=btn.dataset.f;
+  renderLista();
+}
+
+function renderLista(){
+  const busca=document.getElementById("busca").value.toLowerCase();
+  const lista=document.getElementById("lista");
+  const filtradas=denuncias.filter(d=>{
+    const okTipo=filtroAtivo==="todos"||d.tipo===filtroAtivo;
+    const okBusca=!busca||d.endereco.toLowerCase().includes(busca)||d.descricao.toLowerCase().includes(busca);
+    return okTipo&&okBusca;
+  });
+  if(!filtradas.length){lista.innerHTML='<div class="empty">Nenhuma denúncia encontrada.</div>';return;}
+  lista.innerHTML=filtradas.map(d=>{
+    const ehMinha=d.criado_por&&d.criado_por===usuarioAtual;
+    const btnDel=ehMinha
+      ?`<button class="btn-del" onclick="excluir(${d.id})" title="Excluir minha denúncia"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg></button>`
+      :'';
+    const ownerTag=d.criado_por
+      ?(ehMinha?`<span class="mine-tag">minha</span>`:`<span class="item-owner">${d.criado_por}</span>`)
+      :'';
+    return `<div class="item">
+      <div class="item-icon" style="background:${ICON_BG[d.tipo]};color:${ICON_COLOR[d.tipo]}">${ICONS[d.tipo]}</div>
+      <div class="item-body">
+        <div class="item-top">
+          <span class="item-addr">${d.endereco}</span>
+          <span class="badge b-${d.tipo}">${TIPO_LABEL[d.tipo]}</span>
+          <span class="badge s-${d.status}">${STATUS_LABEL[d.status]}</span>
+        </div>
+        <div class="item-desc">${d.descricao}</div>
+        <div class="item-meta">${d.criado_em} ${ownerTag}</div>
+      </div>
+      ${btnDel}
+    </div>`;
+  }).join("");
+}
+
+function setApiStatus(ok){
+  const el=document.getElementById("api-status");
+  if(ok){el.className="api-status api-ok";el.innerHTML='<span class="api-dot"></span> API conectada';}
+  else{el.className="api-status api-fail";el.innerHTML='<span class="api-dot"></span> API offline';}
+}
+
+function toast(msg,bg="#085041"){
+  const t=document.getElementById("toast");
+  t.textContent=msg;t.style.background=bg;
+  t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"),2800);
+}
+
+iniciar();
+setInterval(()=>{if(usuarioAtual)carregarDenuncias();},30000);
 </script>
 </body>
 </html>
