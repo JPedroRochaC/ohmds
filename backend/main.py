@@ -1,35 +1,40 @@
-# IMPORTAÇÕES DAS BIBLIOTECAS
-from flask import Flask, request, jsonify  # Flask (API), request (dados recebidos), jsonify (respostas em JSON)
-from flask_cors import CORS                # Libera acesso do front-end (CORS)
-import pymysql                             # Conexão com MySQL
-from pymysql import Error                  # Tratamento de erros do banco
-from datetime import datetime, timezone, timedelta  # Manipulação de datas
-import os                                  # Variáveis de ambiente (deploy)
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+import pymysql
+from pymysql import Error
+from datetime import datetime, timezone, timedelta
+import os
 
-# CRIAÇÃO DO APP FLASK
 app = Flask(__name__)
-CORS(app)  # Permite requisições de outros domínios (ex: HTML separado)
+CORS(app)
 
-# CONFIGURAÇÃO DO BANCO DE DADOS (via variáveis de ambiente)
 DB_CONFIG = {
-    "host":     os.environ.get("MYSQLHOST"),       # Host do banco
-    "user":     os.environ.get("MYSQLUSER"),       # Usuário
-    "password": os.environ.get("MYSQLPASSWORD"),   # Senha
-    "database": os.environ.get("MYSQLDATABASE"),   # Nome do banco
-    "port":     int(os.environ.get("MYSQLPORT", 3306))  # Porta padrão 3306
+    "host":     os.environ.get("MYSQLHOST"),
+    "user":     os.environ.get("MYSQLUSER"),
+    "password": os.environ.get("MYSQLPASSWORD"),
+    "database": os.environ.get("MYSQLDATABASE"),
+    "port":     int(os.environ.get("MYSQLPORT", 3306))
 }
 
-# FUNÇÃO PARA CONECTAR NO BANCO
 def get_conn():
     return pymysql.connect(**DB_CONFIG)
 
-# FUNÇÃO PARA CRIAR A TABELA (SE NÃO EXISTIR)
 def init_db():
     try:
         conn = get_conn()
         cursor = conn.cursor()
 
-        # Cria a tabela denuncias
+        # Tabela de usuários com nome único
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS usuarios (
+                id        INT AUTO_INCREMENT PRIMARY KEY,
+                nome      VARCHAR(100) NOT NULL,
+                criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE KEY uq_nome (nome)
+            )
+        """)
+
+        # Tabela de denúncias com usuario_id
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS denuncias (
                 id         INT AUTO_INCREMENT PRIMARY KEY,
@@ -38,46 +43,52 @@ def init_db():
                 descricao  TEXT NOT NULL,
                 status     ENUM('pendente','andamento','resolvido') DEFAULT 'pendente',
                 criado_em  DATETIME DEFAULT CURRENT_TIMESTAMP,
-                criado_por VARCHAR(100) DEFAULT 'anonimo'
+                usuario_id INT,
+                CONSTRAINT fk_usuario FOREIGN KEY (usuario_id) REFERENCES usuarios(id)
             )
         """)
-
-        # Tenta adicionar a coluna criado_por caso não exista (para bancos antigos)
-        try:
-            cursor.execute("ALTER TABLE denuncias ADD COLUMN criado_por VARCHAR(100) DEFAULT 'anonimo'")
-        except Error:
-            pass  # Se já existir, ignora
 
         conn.commit()
         cursor.close()
         conn.close()
-        print("Banco conectado e tabela pronta!")
+        print("Banco conectado e tabelas prontas!")
 
     except Error as e:
         print(f"Erro ao conectar no banco: {e}")
 
-# ROTA GET → LISTAR TODAS AS DENÚNCIAS
+
+# HELPER → busca ou cria usuário, retorna o id
+def get_ou_criar_usuario(cursor, nome):
+    nome = nome.strip() or "anonimo"
+    # INSERT IGNORE não cria duplicata graças ao UNIQUE KEY
+    cursor.execute("INSERT IGNORE INTO usuarios (nome) VALUES (%s)", (nome,))
+    cursor.execute("SELECT id FROM usuarios WHERE nome = %s", (nome,))
+    row = cursor.fetchone()
+    return row[0] if row else None
+
+
+# GET → listar denúncias (faz JOIN com usuarios)
 @app.route("/denuncias", methods=["GET"])
 def listar():
     try:
         conn = get_conn()
-        cursor = conn.cursor(pymysql.cursors.DictCursor)  # Retorna como dicionário
+        cursor = conn.cursor(pymysql.cursors.DictCursor)
 
-        # Busca todas as denúncias ordenadas pela mais recente
-        cursor.execute("SELECT * FROM denuncias ORDER BY criado_em DESC")
+        cursor.execute("""
+            SELECT d.*, u.nome AS criado_por
+            FROM denuncias d
+            LEFT JOIN usuarios u ON u.id = d.usuario_id
+            ORDER BY d.criado_em DESC
+        """)
         rows = cursor.fetchall()
 
         cursor.close()
         conn.close()
 
-        # Ajusta dados antes de enviar pro front
+        fuso_brasil = timezone(timedelta(hours=-3))
         for r in rows:
-            # Converte data para horário do Brasil
             if isinstance(r["criado_em"], datetime):
-               fuso_brasil = timezone(timedelta(hours=-3))
-               r["criado_em"] = r["criado_em"].replace(tzinfo=timezone.utc).astimezone(fuso_brasil).strftime("%d/%m/%Y %H:%M")
-
-            # Garante que criado_por nunca seja vazio
+                r["criado_em"] = r["criado_em"].replace(tzinfo=timezone.utc).astimezone(fuso_brasil).strftime("%d/%m/%Y %H:%M")
             if not r.get("criado_por"):
                 r["criado_por"] = "anonimo"
 
@@ -86,44 +97,39 @@ def listar():
     except Error as e:
         return jsonify({"erro": str(e)}), 500
 
-# ROTA POST → CRIAR NOVA DENÚNCIA
+
+# POST → criar denúncia
 @app.route("/denuncias", methods=["POST"])
 def criar():
-    data = request.get_json()  # Pega JSON enviado pelo front
+    data = request.get_json()
 
-    # Pega os dados e limpa espaços
     tipo       = data.get("tipo", "").strip()
     endereco   = data.get("endereco", "").strip()
     descricao  = data.get("descricao", "").strip()
     status     = data.get("status", "pendente").strip()
-    criado_por = data.get("criado_por", "anonimo").strip() or "anonimo"
+    nome       = data.get("criado_por", "anonimo").strip() or "anonimo"
 
-    # Validação de campos obrigatórios
     if not tipo or not endereco or not descricao:
         return jsonify({"erro": "Campos tipo, endereco e descricao são obrigatórios"}), 400
 
-    # Valores permitidos
-    tipos_validos  = ["buraco", "lixo", "iluminacao", "outro"]
-    status_validos = ["pendente", "andamento", "resolvido"]
-
-    # Validação de dados
-    if tipo not in tipos_validos:
+    if tipo not in ["buraco", "lixo", "iluminacao", "outro"]:
         return jsonify({"erro": "Tipo inválido"}), 400
-    if status not in status_validos:
+    if status not in ["pendente", "andamento", "resolvido"]:
         return jsonify({"erro": "Status inválido"}), 400
 
     try:
         conn = get_conn()
         cursor = conn.cursor()
 
-        # Insere no banco
+        usuario_id = get_ou_criar_usuario(cursor, nome)
+
         cursor.execute(
-            "INSERT INTO denuncias (tipo, endereco, descricao, status, criado_por) VALUES (%s, %s, %s, %s, %s)",
-            (tipo, endereco, descricao, status, criado_por)
+            "INSERT INTO denuncias (tipo, endereco, descricao, status, usuario_id) VALUES (%s, %s, %s, %s, %s)",
+            (tipo, endereco, descricao, status, usuario_id)
         )
 
         conn.commit()
-        novo_id = cursor.lastrowid  # ID gerado
+        novo_id = cursor.lastrowid
 
         cursor.close()
         conn.close()
@@ -133,39 +139,37 @@ def criar():
     except Error as e:
         return jsonify({"erro": str(e)}), 500
 
-# ROTA DELETE → EXCLUIR DENÚNCIA
+
+# DELETE → excluir denúncia
 @app.route("/denuncias/<int:id>", methods=["DELETE"])
 def excluir(id):
     try:
         conn = get_conn()
         cursor = conn.cursor()
 
-        # Deleta pelo ID
         cursor.execute("DELETE FROM denuncias WHERE id = %s", (id,))
         conn.commit()
 
-        afetados = cursor.rowcount  # Quantas linhas foram afetadas
-
+        afetados = cursor.rowcount
         cursor.close()
         conn.close()
 
-        # Se não encontrou o ID
         if afetados == 0:
             return jsonify({"erro": "Denúncia não encontrada"}), 404
 
-        return "", 204  # Sucesso sem conteúdo
+        return "", 204
 
     except Error as e:
         return jsonify({"erro": str(e)}), 500
 
-# ROTA GET → ESTATÍSTICAS
+
+# GET → stats
 @app.route("/stats", methods=["GET"])
 def stats():
     try:
         conn = get_conn()
         cursor = conn.cursor(pymysql.cursors.DictCursor)
 
-        # Conta total e por status
         cursor.execute("""
             SELECT
                 COUNT(*) AS total,
@@ -176,11 +180,9 @@ def stats():
         """)
 
         row = cursor.fetchone()
-
         cursor.close()
         conn.close()
 
-        # Retorna os números (garantindo que não seja None)
         return jsonify({
             "total":     int(row["total"]     or 0),
             "pendente":  int(row["pendente"]  or 0),
@@ -191,7 +193,7 @@ def stats():
     except Error as e:
         return jsonify({"erro": str(e)}), 500
 
-# INÍCIO DO SERVIDOR
+
 if __name__ == "__main__":
-    init_db()  # Garante que o banco/tabela existam
-    app.run(debug=True, port=5000)  # Roda o servidor na porta 5000
+    init_db()
+    app.run(debug=True, port=5000)
